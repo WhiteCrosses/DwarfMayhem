@@ -1,13 +1,30 @@
-# This is a comment line
-CC=g++
-# CFLAGS will be the options passed to the compiler.
-CFLAGS= -c -Wall
-all: prog
+# Compiler
+CXX = g++
 
-prog: main.o
-	$(CC) main.o -o build
-main.o: main.cpp
-	$(CC) $(CFLAGS) main.cpp
+# Compiler flags
+CXXFLAGS = -Wall
+
+# Include directories
+INCLUDES = -I../include/SDL2
+
+# Library directories
+LIBDIRS = -L../lib
+
+LIBS = -lSDL2
+
+# Source files
+SRC = main.cpp
+
+# Output executable
+OUT = my_program
+
+all: $(OUT)
+
+$(OUT): $(SRC)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(LIBDIRS) $(SRC) -o $(OUT) $(LIBS)
+
 clean:
-	rm -rf *.o
+	rm -f $(OUT)
+
+.PHONY: all clean
 
