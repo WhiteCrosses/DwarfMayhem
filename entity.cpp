@@ -102,6 +102,11 @@ int Entity::getY()
     return rect.y;
 }
 
+void Entity::updatePosition(int posX, int posY){
+    rect.x = posX;
+    rect.y = posY;
+}
+
 void Entity::setX(int x)
 {
     rect.x = x;
@@ -145,6 +150,10 @@ bool Entity::move()
 void Entity::render(SDL_Renderer* renderer,SDL_Texture* entityTexture)
 {
     SDL_RenderCopyEx(renderer, entityTexture, NULL, &rect, angle, NULL, SDL_FLIP_HORIZONTAL);
+}
+void Entity::render_flipped(SDL_Renderer* renderer,SDL_Texture* entityTexture)
+{
+    SDL_RenderCopyEx(renderer, entityTexture, NULL, &rect, angle, NULL, SDL_FLIP_NONE);
 }
 
 bool Entity::collisionCheck(SDL_Rect targetRect){

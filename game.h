@@ -12,9 +12,11 @@ struct Game
     SDL_Window* window;             //Unsafe, but needs to stay in public for easy access.
     SDL_Renderer* renderer;
     Player player_;
+    Entity background_;
+    SDL_Texture* bg_txt;
     Game();
     ~Game();
-    SDL_Texture* texture;
+    
 
 private:
     void runEventLoop();

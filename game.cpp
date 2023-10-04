@@ -1,12 +1,39 @@
 #include "game.h"
+#include "entity.h"
 #include <chrono>
+
+#include <fstream>
 
 const auto kfps = 60;
 const auto dtime = std::chrono::milliseconds{5 * 1000 / 60};
 
-Game::Game():player_(NULL), window(NULL), renderer(NULL)
+Game::Game():
+    player_(NULL),
+    window(NULL),
+    renderer(NULL)
 {
     SDL_Init(SDL_INIT_EVERYTHING);
+
+    std::ifstream in("game.config");
+     if (!in.is_open()){
+         std::cout<<"Failed to load config file!"<<std::endl;
+     }
+
+    std::string param;
+    int value;
+
+     while(!in.eof()){
+        in >> param;
+        in >> value;
+
+        std::cout<<param<<" : "<<value<<std::endl;
+
+     }
+
+     in.close();
+
+
+
     window = SDL_CreateWindow("test",
                         SDL_WINDOWPOS_UNDEFINED,
                         SDL_WINDOWPOS_UNDEFINED,
@@ -20,11 +47,23 @@ Game::Game():player_(NULL), window(NULL), renderer(NULL)
                         -1,
                         SDL_RENDERER_ACCELERATED);
 
+    if (renderer == NULL)
+        std::cout<<"Failed to load! Error: "<<SDL_GetError()<<std::endl;
+    //Create player object
     player_ = Player(renderer);
-
-    SDL_SetRenderDrawColor(renderer, 158,132,146,1);
     
+    //create background object and adjust sizing
+    background_ = Entity();
+    background_.rect.x = 0;
+    background_.rect.y = 0;
+    background_.rect.w = 1920;
+    background_.rect.h = 1080;
+    background_.angle = 0;
 
+    SDL_Texture* bg_txt = IMG_LoadTexture(renderer, "src/pxfuel.png");
+    if(bg_txt == NULL) std::cout<<"Error loading texture: " << SDL_GetError() << std::endl;
+    //SDL_SetRenderDrawColor(renderer, 158,132,146,1);
+    
     runEventLoop();
 }
 
@@ -34,7 +73,6 @@ Game::~Game()
 
 void Game::runEventLoop() {
     
-
     SDL_Event event;
 
     bool running{true};
@@ -45,33 +83,45 @@ void Game::runEventLoop() {
         using std::chrono::duration_cast;
 
         const auto start_time = high_resolution_clock::now();
-        std::cout<<"FPS: "<<1.0/dtime.count()<<"\n";
+
+        //TODO wrap full event polling into new class
         while(SDL_PollEvent(&event)) {
-        if(event.type == SDL_QUIT) {
-            running = false;
-        }
-    }
+            if(event.type == SDL_QUIT) {
+                running = false;
+            }
+            //User presses a key
+            else if( event.type == SDL_KEYDOWN )
+            {
+                if(event.key.keysym.sym == SDLK_q){
+                    running = false;
+                    
+                    }
 
-        const Uint8 *keystates = SDL_GetKeyboardState(NULL);
+
+                if(event.key.keysym.sym == SDLK_d){
+                    if(abs(player_.x_acceleration) < 1) player_.x_acceleration += 1;
+                    player_.facing_side = 1;
+                }
+                    
+                if(event.key.keysym.sym == SDLK_a){
+                    if(abs(player_.x_acceleration) < 1) player_.x_acceleration = -1;
+                    player_.facing_side = -1;
+                }
+                    
+
+                if(event.key.keysym.sym == SDLK_w){
+                    if(abs(player_.y_acceleration) < 1) player_.y_acceleration = -1;    
+                }
+
+                if(event.key.keysym.sym == SDLK_s){
+                    if(abs(player_.y_acceleration) < 1) player_.y_acceleration = 1;
+                    
+                    }
+            }
+        }
+
         
-        if(keystates[SDL_SCANCODE_D]){
-            player_.x_acceleration = 5;
-        }
-        else if(keystates[SDL_SCANCODE_A]){
-            player_.x_acceleration = -5;
-        }
-        else if(keystates[SDL_SCANCODE_W]){
-            player_.y_acceleration = 5;
-        }
-        else if(keystates[SDL_SCANCODE_S]){
-            player_.y_acceleration = -5;
-        }
-        else if(keystates[SDL_SCANCODE_Q]){
-            std::cout<<"HP\n";
-            running = false;
-        }
-
-
+        
         // update scene and last_updated_time
         const auto current_time = high_resolution_clock::now();
         const auto upd_elapsed_time = current_time - last_updated_time;
@@ -87,7 +137,7 @@ void Game::runEventLoop() {
         if (delay_duration.count() >= 0)
             SDL_Delay(delay_duration.count());
         
-        update(elapsed_time);
+        update(milliseconds(1000) / kfps);
         draw();
     }
 }
@@ -96,7 +146,6 @@ void Game::update(const std::chrono::milliseconds elapsed_time)
 {
     player_.update(elapsed_time);
 }
-
 
 void Game::flip() const
 {
@@ -111,6 +160,8 @@ void Game::clear() const
 void Game::draw()
 {
     clear();
+    background_.render(renderer, bg_txt);
     player_.render(renderer);
-    flip();
+    //flip();
+    SDL_RenderPresent(renderer);
 }

@@ -29,11 +29,13 @@ public:
     void setVariables(int posX, int posY, int angle, int linSpeedE);
     void setX(int x);
     void setY(int y);
+    void updatePosition(int posX, int posY);
     void incrementX(int x);
     void incrementY(int y);
     bool move();
     void explosion(int posX, int posY);
     void render(SDL_Renderer* renderer,SDL_Texture* entityTexture);
+    void render_flipped(SDL_Renderer* renderer,SDL_Texture* entityTexture);
     bool collisionCheck(SDL_Rect targetRect);
 
     int getX();
